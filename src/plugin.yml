@@ -1,0 +1,5 @@
+name: RedstoneCounter
+main: jarvisd.redstonecounter.RedstoneCounter
+
+version: 0.12
+commands:
