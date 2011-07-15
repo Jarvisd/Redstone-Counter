@@ -18,7 +18,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * to get the hash map from the main collection, feed it the key "XYZ" block coordinates.
  */
 public class SignProperties {
-	private Map<String, Map<String, String>> signsProp = new HashMap<String,Map<String,String>>();
+	public Map<String, Map<String, String>> signsProp = new HashMap<String,Map<String,String>>();
 
 	private File propFile;
 	
@@ -62,6 +62,12 @@ public class SignProperties {
 			if (!map.containsKey(keyV)){
 				map.put(keyV, value);
 			}
+		}
+	}
+	
+	public void remove(String key) {
+		if (signsProp.containsKey(key)) {
+			signsProp.remove(key);
 		}
 	}
 	

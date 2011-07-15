@@ -1,9 +1,9 @@
 package jarvisd.redstonecounter;
 
+import jarvisd.redstonecounter.Block.StopWatchSign;
+
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -13,8 +13,7 @@ import org.bukkit.event.block.BlockListener;
 import org.bukkit.event.block.BlockRedstoneEvent;
 
 public class RCBlockRedstoneListener extends BlockListener {
-	public static RedstoneCounter plugin;
-	public List<Sign> signsToUpdate = new ArrayList<Sign>();
+	public RedstoneCounter plugin;
 
 	public RCBlockRedstoneListener(RedstoneCounter instance)	{
 		plugin = instance;
@@ -39,8 +38,21 @@ public class RCBlockRedstoneListener extends BlockListener {
 					if (b.getType() == Material.WALL_SIGN || b.getType() == Material.SIGN_POST) {
 						Sign sign = (Sign)b.getState();
 						String[] lines = sign.getLines();	
-						 if (lines[0].equalsIgnoreCase("~Counter~")) {
+						 if (lines[0].trim().equalsIgnoreCase(RedstoneCounter.CounterLiteral)) {
 							 SignCounter(sign);
+						 }
+						 else if (lines[0].trim().equalsIgnoreCase(RedstoneCounter.TimerLiteral)) {
+							 boolean signExists = false;
+							 for (StopWatchSign sws : plugin.stopWatchSigns) {
+								 if (sws.getBlock().equals(b)) {
+									 signExists = true;
+									 break;
+								 }
+							 }
+							 if (!signExists) {
+								 StopWatchSign sws = new StopWatchSign(plugin, b);
+								 plugin.stopWatchSigns.add(sws);
+							 }
 						 }
 					}
 				}
@@ -54,15 +66,14 @@ public class RCBlockRedstoneListener extends BlockListener {
 		int maxAmount = Integer.MAX_VALUE;
 		int rollOver = 0;
 		if (!lines[1].isEmpty() || lines[1] != null) { // get the maxAmount until rollOver.
-		try {
-			maxAmount = parseSignLine(lines[1]);
-		} catch(ParseException e) {
-			//System.out.println("Failed to parse sign, invalid max number");
-				maxAmount = Integer.MAX_VALUE;
-				sign.setLine(1, String.valueOf(formatSignLine(maxAmount)));
-			}
+				try {
+					maxAmount = parseSignLine(lines[1]);
+					sign.setLine(1, String.valueOf(formatSignLine(maxAmount)));
+				} catch(ParseException e) {
+					//System.out.println("Failed to parse sign, invalid max number");
+					maxAmount = Integer.MAX_VALUE;
+				}
 		 }
-		 else { sign.setLine(1, String.valueOf(formatSignLine(maxAmount))); }
 		
 		if (!lines[2].isEmpty() || lines[2] != null) { // get the current count.
 		try {
@@ -90,18 +101,9 @@ public class RCBlockRedstoneListener extends BlockListener {
 		}
 			
 		
-			signsToUpdate.add(sign);
-			Runnable signUpdaterTask = new Runnable() {
-				@Override
-		        public void run() {
-					for (int i = 0; i < signsToUpdate.size(); i++) {
-						signsToUpdate.get(i).update();
-						signsToUpdate.remove(i);
-					}
-				}
-				
-			};
-			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, signUpdaterTask);
+			plugin.signsToUpdate.add(sign);
+
+	
 		}
 	
 	
