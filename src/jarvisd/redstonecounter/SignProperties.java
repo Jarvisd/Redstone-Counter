@@ -99,19 +99,21 @@ public class SignProperties {
 	}
 
 	public void Save() {
-		 try {
-			BufferedWriter writerStream = new BufferedWriter(new FileWriter(propFile));
-			StringBuilder strBuilder = new StringBuilder();
+		try {
+		BufferedWriter writerStream = new BufferedWriter(new FileWriter(propFile));
+		StringBuilder strBuilder = new StringBuilder();
+		
 			for (String key : signsProp.keySet())  {
+				StringBuilder sBuilder = new StringBuilder();
 				Map<String, String> map = signsProp.get(key);
 				for (String k : map.keySet()) {
-					strBuilder.append(" ");
-					strBuilder.append(k);
-					strBuilder.append("=");
-					strBuilder.append(map.get(k));
-
+					sBuilder.append(" ");
+					sBuilder.append(k);
+					sBuilder.append("=");
+					sBuilder.append(map.get(k));
 				}
-				strBuilder.append("\n");
+				strBuilder.append(sBuilder.toString().trim());
+				strBuilder.append(System.lineSeparator());
 			}
 			writerStream.write(strBuilder.toString());
 			writerStream.flush();
@@ -120,7 +122,7 @@ public class SignProperties {
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
-			//System.out.println("RedstoneCounter Saved");
+			System.out.println("RedstoneCounter Saved");
 		}
 	}
 	

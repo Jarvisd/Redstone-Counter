@@ -45,6 +45,9 @@ public class RCBlockListener extends BlockListener {
 					 plugin.signProp.addString(key, "sysTicks", String.valueOf(sws.systemTicks));
 					 plugin.signProp.addString(key, "sTicks", String.valueOf(sws.signTicks));
 					 plugin.signProp.addString(key, "powered", "false");
+					 plugin.signProp.addString(key, "X", String.valueOf(b.getX()));
+					 plugin.signProp.addString(key, "Y", String.valueOf(b.getY()));
+					 plugin.signProp.addString(key, "Z", String.valueOf(b.getZ()));
 					 plugin.stopWatchSigns.add(sws);
 			 }
 		 }
@@ -75,7 +78,10 @@ public class RCBlockListener extends BlockListener {
 					 plugin.signProp.addString(key, "sysTicks", String.valueOf(sws.systemTicks));
 					 plugin.signProp.addString(key, "sTicks", String.valueOf(sws.signTicks));
 					 plugin.signProp.addString(key, "powered", "false");
-					
+					 plugin.signProp.addString(key, "X", String.valueOf(b.getX()));
+					 plugin.signProp.addString(key, "Y", String.valueOf(b.getY()));
+					 plugin.signProp.addString(key, "Z", String.valueOf(b.getZ()));
+					 
 					 plugin.stopWatchSigns.add(sws);
 			 }
 		 }
@@ -129,7 +135,7 @@ public class RCBlockListener extends BlockListener {
 					 else if (lines[0].trim().equalsIgnoreCase(RedstoneCounter.TimerLiteral)) {
 						 for (StopWatchSign sws : plugin.stopWatchSigns) {
 							 if (sws.getBlock().equals(b)) {
-								 sws.Powered(event.getOldCurrent() == 0 ? true : false);
+								 sws.Powered(event.getOldCurrent() == 0 ? true : false, true);
 								 String key = b.getX() +""+ b.getY() +""+ b.getZ();
 								 plugin.signProp.addString(key, "powered", String.valueOf(sws.powered));
 								 break;

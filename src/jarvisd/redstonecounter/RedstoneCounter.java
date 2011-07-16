@@ -3,6 +3,7 @@ package jarvisd.redstonecounter;
 import jarvisd.redstonecounter.Block.StopWatchSign;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -47,12 +48,16 @@ public class RedstoneCounter extends JavaPlugin	{
 			long time = System.currentTimeMillis();
 			@Override
 	        public void run() {
-				for (int i = 0; i < signsToUpdate.size(); i++) {
-					signsToUpdate.get(i).update();
-					signsToUpdate.remove(i);
+				synchronized (signsToUpdate) {
+					for (int i = 0; i < signsToUpdate.size(); i++) {
+						signsToUpdate.get(i).update();
+						signsToUpdate.remove(i);
+					}
 				}
-				for (StopWatchSign sws : stopWatchSigns) {
-					sws.update();
+				synchronized (stopWatchSigns) {
+					for (StopWatchSign sws : stopWatchSigns) {
+						sws.update();
+					}
 				}
 				long t = System.currentTimeMillis() - time;
 				if (t >= 300000) { 
@@ -69,8 +74,10 @@ public class RedstoneCounter extends JavaPlugin	{
     
     private void initStopwatchSigns() {
     	signProp.Parse();
-    	StopWatchSign sws;
-    	for (String key : signProp.signsProp.keySet())  {
+    	StopWatchSign sws = null;
+    	synchronized (signProp.signsProp) {
+    	for (Iterator<String> it = signProp.signsProp.keySet().iterator(); it.hasNext();)  {
+    		String key = it.next();
     		Map<String, String> map = signProp.signsProp.get(key);
     		Block b = null;
     		try {
@@ -81,43 +88,46 @@ public class RedstoneCounter extends JavaPlugin	{
 							Integer.parseInt(map.get("Z"))
 							); 
     		} catch (NumberFormatException e) { 
-    			signProp.remove(key);
+    			it.remove();
+    			continue;
     		} finally {
     			if (b != null) {
+    				
 					if (b.getState() instanceof Sign) {
 						if (((Sign)b.getState()).getLines()[0].equalsIgnoreCase(TimerLiteral)) {
 							sws = new StopWatchSign(this, b);
-							int T = 0;
 							try {
-								T = Integer.parseInt(map.get("sysTicks"));
+								sws.systemTicks = Integer.parseInt(map.get("sysTicks"));
 							} catch (NumberFormatException e) { 
-				    			T = 0;
+								sws.systemTicks = 0;
 				    		}
-							sws.signTicks = T;
 							try {
-								T = Integer.parseInt(map.get("sTicks"));
+								sws.signTicks = Integer.parseInt(map.get("sTicks"));
 							} catch (NumberFormatException e) { 
-				    			T = 0;
+								sws.signTicks = 0;
 				    		}
-							sws.signTicks = T;
-							
-							sws.Powered(Boolean.parseBoolean(map.get("powered")));
+							sws.Powered(Boolean.parseBoolean(map.get("powered")), false);
+							//sws.powered = Boolean.parseBoolean(map.get("powered"));
+							stopWatchSigns.add(sws);
 						}
 						else { 
-							signProp.remove(key);
+							it.remove();
+							continue;
 						}
 					}
 					else { 
-						signProp.remove(key);
+						it.remove();
+						continue;
 					}
     			}
     			else { 
-    				signProp.remove(key); 
+    				it.remove();
+    				continue;
     			}
     		}
     	}
     	signProp.Save();
-
+    	}
     }
     
 }

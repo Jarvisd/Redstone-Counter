@@ -1,5 +1,8 @@
 package jarvisd.redstonecounter.Block;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import jarvisd.redstonecounter.RedstoneCounter;
 
 import org.bukkit.block.Block;
@@ -21,11 +24,15 @@ public class StopWatchSign  {
 	public Block getBlock() {
 		return block;
 	}
-	public void Powered(boolean on) {
+	public void Powered(boolean on, boolean reset) {
 		powered = on;
 		if (on) {
 			systemTicks = System.currentTimeMillis();
+			if (reset) {
+				signTicks = 0;
+			}
 		}
+
 		
 	}
 	public void update() {
@@ -33,9 +40,13 @@ public class StopWatchSign  {
 			if (block.getState() instanceof Sign) {
 				Sign sign = (Sign)block.getState();
 				long currentTicks = System.currentTimeMillis();
-				signTicks = (currentTicks - systemTicks) - 68400000; //subtract 68400000 to rid of 19 hours?
-				String time = new java.text.SimpleDateFormat("HH:mm:ss").format(new java.util.Date(signTicks));
-				sign.setLine(3, time);
+				signTicks += ((currentTicks - systemTicks) ); 
+				systemTicks = currentTicks;
+				GregorianCalendar gc = new GregorianCalendar(0,0,0,0,0,(int)(signTicks/ 1000));
+				String d = "Days: "+gc.get(Calendar.DAY_OF_YEAR);
+				String ti = gc.get(Calendar.HOUR_OF_DAY) +":"+gc.get(Calendar.MINUTE) +":"+gc.get(Calendar.SECOND);
+				sign.setLine(2, d);
+				sign.setLine(3, ti);
 				plugin.signsToUpdate.add(sign);
 				String key = block.getX() +""+ block.getY() +""+ block.getZ();
 				
