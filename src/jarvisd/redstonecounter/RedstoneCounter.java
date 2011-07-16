@@ -23,10 +23,11 @@ public class RedstoneCounter extends JavaPlugin	{
 	public static final String CounterLiteral = "~Counter~";
 	
 	private Runnable signUpdaterTask;
-	
+
     public void onDisable() {
         System.out.println("RedStone Counter Disabled");
         getServer().getScheduler().cancelTasks(this);
+        signProp.Save();
     }
     public void onEnable() {
         PluginDescriptionFile pdfFile = this.getDescription();
@@ -34,13 +35,16 @@ public class RedstoneCounter extends JavaPlugin	{
         
         signProp = new SignProperties(this, "RC_Signs.conf");
         
-        RCBlockRedstoneListener rcListener = new RCBlockRedstoneListener(this);
+        RCBlockListener rcListener = new RCBlockListener(this);
         PluginManager pm = getServer().getPluginManager();
         pm.registerEvent(Event.Type.REDSTONE_CHANGE,rcListener, Priority.Lowest, this);
-        
+        pm.registerEvent(Event.Type.BLOCK_BREAK,rcListener, Priority.Lowest, this);
+        pm.registerEvent(Event.Type.BLOCK_DAMAGE,rcListener, Priority.Lowest, this);
+        pm.registerEvent(Event.Type.SIGN_CHANGE,rcListener, Priority.Lowest, this);
         initStopwatchSigns();
         
 		signUpdaterTask = new Runnable() {
+			long time = System.currentTimeMillis();
 			@Override
 	        public void run() {
 				for (int i = 0; i < signsToUpdate.size(); i++) {
@@ -50,9 +54,15 @@ public class RedstoneCounter extends JavaPlugin	{
 				for (StopWatchSign sws : stopWatchSigns) {
 					sws.update();
 				}
+				long t = System.currentTimeMillis() - time;
+				if (t >= 300000) { 
+					signProp.Save(); 
+					System.out.println(";o");
+					time = System.currentTimeMillis();
+				}
 			}
 		};
-		getServer().getScheduler().scheduleAsyncRepeatingTask(this, signUpdaterTask, 20, 20);
+		getServer().getScheduler().scheduleAsyncRepeatingTask(this, signUpdaterTask, 5, 5);
 		
 		
     }
@@ -73,30 +83,37 @@ public class RedstoneCounter extends JavaPlugin	{
     		} catch (NumberFormatException e) { 
     			signProp.remove(key);
     		} finally {
-				if (b.getState() instanceof Sign) {
-					if (((Sign)b.getState()).getLines()[0].equalsIgnoreCase(TimerLiteral)) {
-						sws = new StopWatchSign(this, b);
-						int T = 0;
-						try {
-							T = Integer.parseInt(map.get("sysTicks"));
-						} catch (NumberFormatException e) { 
-			    			T = 0;
-			    		}
-						sws.signTicks = T;
-						try {
-							T = Integer.parseInt(map.get("sTicks"));
-						} catch (NumberFormatException e) { 
-			    			T = 0;
-			    		}
-						sws.signTicks = T;
+    			if (b != null) {
+					if (b.getState() instanceof Sign) {
+						if (((Sign)b.getState()).getLines()[0].equalsIgnoreCase(TimerLiteral)) {
+							sws = new StopWatchSign(this, b);
+							int T = 0;
+							try {
+								T = Integer.parseInt(map.get("sysTicks"));
+							} catch (NumberFormatException e) { 
+				    			T = 0;
+				    		}
+							sws.signTicks = T;
+							try {
+								T = Integer.parseInt(map.get("sTicks"));
+							} catch (NumberFormatException e) { 
+				    			T = 0;
+				    		}
+							sws.signTicks = T;
+							
+							sws.Powered(Boolean.parseBoolean(map.get("powered")));
+						}
+						else { 
+							signProp.remove(key);
+						}
 					}
 					else { 
 						signProp.remove(key);
 					}
-				}
-				else { 
-					signProp.remove(key);
-				}
+    			}
+    			else { 
+    				signProp.remove(key); 
+    			}
     		}
     	}
     	signProp.Save();

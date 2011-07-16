@@ -59,9 +59,7 @@ public class SignProperties {
 	public void addString(String key, String keyV, String value) {
 		if (signsProp.containsKey(key)) {
 			Map<String, String> map = signsProp.get(key);
-			if (!map.containsKey(keyV)){
-				map.put(keyV, value);
-			}
+			map.put(keyV, value);
 		}
 	}
 	
@@ -111,14 +109,18 @@ public class SignProperties {
 					strBuilder.append(k);
 					strBuilder.append("=");
 					strBuilder.append(map.get(k));
+
 				}
 				strBuilder.append("\n");
 			}
 			writerStream.write(strBuilder.toString());
+			writerStream.flush();
 		 } catch (FileNotFoundException e) {
 				e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+			//System.out.println("RedstoneCounter Saved");
 		}
 	}
 	

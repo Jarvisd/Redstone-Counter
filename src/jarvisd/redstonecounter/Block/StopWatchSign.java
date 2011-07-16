@@ -9,8 +9,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class StopWatchSign  {
 	private RedstoneCounter plugin;
 	private Block block = null;
-	public int systemTicks = 0;
-	public int signTicks = 0;
+	public long systemTicks = 0;
+	public long signTicks = 0;
 	public boolean powered = false;
 	
 	public StopWatchSign(JavaPlugin plugin, Block block) {
@@ -21,20 +21,27 @@ public class StopWatchSign  {
 	public Block getBlock() {
 		return block;
 	}
-	
+	public void Powered(boolean on) {
+		powered = on;
+		if (on) {
+			systemTicks = System.currentTimeMillis();
+		}
+		
+	}
 	public void update() {
-		if (block.isBlockIndirectlyPowered() || block.isBlockPowered()) {
+		if (powered) {
 			if (block.getState() instanceof Sign) {
 				Sign sign = (Sign)block.getState();
-				int currentTicks = (int)(System.currentTimeMillis()/1000);
-				signTicks += systemTicks - currentTicks;
-				systemTicks = currentTicks;
+				long currentTicks = System.currentTimeMillis();
+				signTicks = (currentTicks - systemTicks) - 68400000; //subtract 68400000 to rid of 19 hours?
 				String time = new java.text.SimpleDateFormat("HH:mm:ss").format(new java.util.Date(signTicks));
 				sign.setLine(3, time);
 				plugin.signsToUpdate.add(sign);
+				String key = block.getX() +""+ block.getY() +""+ block.getZ();
+				
+				plugin.signProp.addString(key, "sTicks", String.valueOf(signTicks));
 			}
 		}		
 	}
 	
-
 }
